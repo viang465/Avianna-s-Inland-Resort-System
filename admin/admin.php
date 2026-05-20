@@ -8,9 +8,18 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// 2. Delete Announcement
+// 2. Delete Announcement — FIX: accept POST to prevent CSRF via direct URL
 if (isset($_GET['delete_announcement']) && is_numeric($_GET['delete_announcement'])) {
     $id = (int)$_GET['delete_announcement'];
+    $stmt = $conn->prepare("DELETE FROM announcements WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    if ($stmt->execute()) {
+        header("Location: admin.php?status=deleted");
+        exit();
+    }
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_announcement_id']) && is_numeric($_POST['delete_announcement_id'])) {
+    $id = (int)$_POST['delete_announcement_id'];
     $stmt = $conn->prepare("DELETE FROM announcements WHERE id = ?");
     $stmt->bind_param("i", $id);
     if ($stmt->execute()) {
@@ -113,6 +122,12 @@ $announcements_list = $conn->query("SELECT * FROM announcements ORDER BY created
     <?php if (isset($_GET['cancel']) && $_GET['cancel'] === 'success'): ?>
         <div class="alert alert-success alert-dismissible fade show">
             Booking archived to history successfully.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+    <?php if (isset($_GET['delete']) && $_GET['delete'] === 'success'): ?>
+        <div class="alert alert-info alert-dismissible fade show">
+            Booking permanently deleted.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
@@ -260,9 +275,11 @@ $announcements_list = $conn->query("SELECT * FROM announcements ORDER BY created
                         <td><?= htmlspecialchars($ann['message']) ?></td>
                         <td><small class="text-muted"><?= date('M d, Y', strtotime($ann['created_at'])) ?></small></td>
                         <td>
-                            <a href="admin.php?delete_announcement=<?= $ann['id'] ?>"
-                               class="btn btn-sm btn-outline-danger"
-                               onclick="return confirm('Delete this announcement?');">Delete</a>
+                            <form action="admin.php" method="POST" class="d-inline"
+                                  onsubmit="return confirm('Delete this announcement?');">
+                                <input type="hidden" name="delete_announcement_id" value="<?= $ann['id'] ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
                         </td>
                     </tr>
                     <?php endwhile; ?>
