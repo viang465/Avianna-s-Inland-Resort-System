@@ -7,6 +7,9 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
+// Centralised constant — must be declared BEFORE the CSV export block that uses it
+$weeklyExpenseEstimate = 5000;
+
 // CSV Export
 if (isset($_GET['export']) && $_GET['export'] == 'csv') {
     header('Content-Type: text/csv; charset=utf-8');
@@ -40,7 +43,6 @@ if (isset($_GET['export']) && $_GET['export'] == 'csv') {
 }
 
 // Stats
-$weeklyExpenseEstimate = 5000; // Centralised constant used in both export and HTML table
 $totalActive = 0;
 $res = $conn->query("SELECT COUNT(*) as total FROM bookings");
 if ($res) $totalActive = $res->fetch_assoc()['total'] ?? 0;

@@ -10,10 +10,14 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
     $id = intval($_POST['booking_id']);
 
-    // Copy to archive with both column name variants populated for compatibility
+    // Copy to archive — include all guest/booking fields so history shows full detail
     $copySql = "INSERT INTO deleted_bookings
-                    (name, email, address, room_type, checkin_date, checkout_date, deletion_date, deleted_at)
-                SELECT name, email, address, room_type, checkin, checkout, NOW(), NOW()
+                    (name, email, contact, address, room_type, cottage_type, pax,
+                     payment_method, total_price,
+                     checkin_date, checkout_date, deletion_date, deleted_at)
+                SELECT name, email, contact, address, room_type, cottage_type, pax,
+                       payment_method, total_price,
+                       checkin, checkout, NOW(), NOW()
                 FROM bookings WHERE id = ?";
     $stmt = $conn->prepare($copySql);
     $stmt->bind_param("i", $id);

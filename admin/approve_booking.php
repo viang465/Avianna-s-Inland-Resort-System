@@ -56,8 +56,8 @@ function sendApprovalEmail(array $b): bool {
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'aviannasinlandresort@gmail.com';
-        $mail->Password   = 'dmhkacwoqpejzxyy';
+        $mail->Username   = defined('SMTP_USER') ? SMTP_USER : 'aviannasinlandresort@gmail.com';
+        $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : 'dmhkacwoqpejzxyy'; // move to conn.php: define('SMTP_PASS','...')
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
         $mail->Timeout    = 20;

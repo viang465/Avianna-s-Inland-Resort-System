@@ -8,16 +8,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// 2. Delete Announcement — FIX: accept POST to prevent CSRF via direct URL
-if (isset($_GET['delete_announcement']) && is_numeric($_GET['delete_announcement'])) {
-    $id = (int)$_GET['delete_announcement'];
-    $stmt = $conn->prepare("DELETE FROM announcements WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    if ($stmt->execute()) {
-        header("Location: admin.php?status=deleted");
-        exit();
-    }
-}
+// 2. Delete Announcement — POST only (GET removed to prevent CSRF via direct URL)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_announcement_id']) && is_numeric($_POST['delete_announcement_id'])) {
     $id = (int)$_POST['delete_announcement_id'];
     $stmt = $conn->prepare("DELETE FROM announcements WHERE id = ?");
