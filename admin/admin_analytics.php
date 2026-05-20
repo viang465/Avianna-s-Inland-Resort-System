@@ -14,7 +14,6 @@ if (isset($_GET['export']) && $_GET['export'] == 'csv') {
     $output = fopen('php://output', 'w');
     fputcsv($output, ['Week', 'Bookings', 'Revenue (PHP)', 'Expenses (PHP)', 'Net Profit (PHP)']);
 
-    $weeklyExpenseEstimate = 5000;
     $exportStats = $conn->query("
         SELECT FLOOR((DAY(checkin)-1)/7)+1 as week_num,
                COUNT(*) as total_bookings,
@@ -41,6 +40,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'csv') {
 }
 
 // Stats
+$weeklyExpenseEstimate = 5000; // Centralised constant used in both export and HTML table
 $totalActive = 0;
 $res = $conn->query("SELECT COUNT(*) as total FROM bookings");
 if ($res) $totalActive = $res->fetch_assoc()['total'] ?? 0;
@@ -193,7 +193,6 @@ $addressResult = $conn->query("
             </thead>
             <tbody>
                 <?php
-                $weeklyExpenseEstimate = 5000;
                 while ($row = $weeklyStats->fetch_assoc()):
                     $inflow = $row['week_inflow'] ?? 0;
                     $net    = $inflow - $weeklyExpenseEstimate;

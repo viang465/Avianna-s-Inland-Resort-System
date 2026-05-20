@@ -1,5 +1,15 @@
 <?php
 // approve_booking.php — Admin: approve a pending booking
+
+// FIX: use declarations must appear before any executable code (session_start, include, etc.)
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require_once __DIR__ . '/../PHPMailer.php';
+require_once __DIR__ . '/../Exception.php';
+require_once __DIR__ . '/../SMTP.php';
+
 session_start();
 include "../conn.php";
 
@@ -37,16 +47,8 @@ if (!$updated) {
     exit();
 }
 
-// Try to send approval email via PHPMailer (loaded from parent directory)
+// Try to send approval email via PHPMailer
 $emailSent = false;
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
-
-require_once __DIR__ . '/../PHPMailer.php';
-require_once __DIR__ . '/../Exception.php';
-require_once __DIR__ . '/../SMTP.php';
 
 function sendApprovalEmail(array $b): bool {
     $mail = new PHPMailer(true);
@@ -131,7 +133,8 @@ function sendApprovalEmail(array $b): bool {
         return true;
 
     } catch (Exception $e) {
-        error_log("Approval email failed for booking ID {$b['id']}: " . $mail->ErrorInfo);
+        // FIX: use $e->getMessage() — $mail->ErrorInfo may be empty if constructor/config failed
+        error_log("Approval email failed for booking ID {$b['id']}: " . $e->getMessage());
         return false;
     }
 }

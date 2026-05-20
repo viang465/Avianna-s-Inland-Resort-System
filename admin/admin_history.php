@@ -7,11 +7,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// FIX: column is `deleted_at` in the previous public cancel_booking.php,
-// but admin's cancel_booking.php inserts as `deletion_date`.
-// Query uses COALESCE to handle both column name possibilities gracefully.
-// Also fixed: ORDER BY deletion_date DESC (was `deletion_date` which may not exist — added fallback)
-$sql = "SELECT * FROM deleted_bookings ORDER BY id DESC";
+// FIX: ORDER BY deleted_at DESC with fallback; COALESCE handles both column name variants
+$sql = "SELECT * FROM deleted_bookings ORDER BY COALESCE(deleted_at, deletion_date) DESC";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>

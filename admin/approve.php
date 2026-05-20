@@ -127,7 +127,7 @@ $result = $conn->query($sql);
             <tbody>
                 <?php if ($result && $result->num_rows > 0): ?>
                     <?php while ($row = $result->fetch_assoc()): ?>
-                    <tr class="<?= ($newId && $row['id'] === $newId) ? 'row-new-highlight' : '' ?>">
+                    <tr class="<?= ($newId && (int)$row['id'] === $newId) ? 'row-new-highlight' : '' ?>">
                         <td>
                             <strong class="d-block text-dark"><?= htmlspecialchars($row['name']) ?></strong>
                             <small class="text-muted"><?= htmlspecialchars($row['email']) ?></small>
