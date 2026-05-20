@@ -18,19 +18,23 @@ $prices = [
     'room'    => [
         'None'                  => 0,
         'Overnight Room'        => 2500,
+        'Poolside Pavilion'     => 2200,
+        'Pavilion 1'            => 2000,
         'Pavilion Overlooking'  => 2500,
         'Old Pavilion'          => 2000,
         'New Pavilion'          => 3500,
     ],
     'cottage' => [
-        'None'       => 0,
-        'Cottage 400'=> 400,
-        'Cottage 600'=> 600,
+        'None'          => 0,
+        'Cottage 6'     => 400,   // +₱100 electricity surcharge applied separately
+        'Cottage 400'   => 400,
+        'Cottage 600'   => 600,
     ],
     'pax'     => [
-        '2-6'   => 0,
+        '1-6'   => 0,
         '7-10'  => 0,
         '11-15' => 0,
+        '16-40' => 0,
     ],
 ];
 
@@ -151,9 +155,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $booking_error = "Check-in date cannot be in the past.";
     } elseif ($checkout <= $checkin) {
         $booking_error = "Check-out date must be after check-in date.";
+    } elseif ($room === 'Overnight Room' && in_array($pax, ['11-15', '16-40'])) {
+        $booking_error = "Overnight Room is limited to a maximum of 6 guests.";
+    } elseif ($cottage === 'Cottage 6' && in_array($pax, ['11-15', '16-40'])) {
+        $booking_error = "Cottage 6 is limited to a maximum of 12 guests (8–12 pax, day stay only).";
     } else {
         $room_price    = $prices['room'][$room]       ?? 0;
         $cottage_price = $prices['cottage'][$cottage] ?? 0;
+        // Add ₱100 electricity surcharge for Cottage 6
+        if ($cottage === 'Cottage 6') {
+            $cottage_price += 100;
+        }
 
         $stmt = $conn->prepare("
             INSERT INTO bookings
@@ -317,8 +329,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <label class="form-label">Accommodation Type</label>
                     <select name="room_type" class="form-select" id="roomType">
                         <option value="None" data-price="0">No Accommodation</option>
-                        <option value="Overnight Room" data-price="2500">Overnight Room (6 pax + Free Swim) — ₱2,500</option>
-                        <option value="Pavilion Overlooking" data-price="2500">Pavilion Overlooking Pool — ₱2,500</option>
+                        <option value="Overnight Room" data-price="2500">Overnight Room (max 6 pax, AC + Fan, Mini Kitchen) — ₱2,500</option>
+                        <option value="Poolside Pavilion" data-price="2200">Poolside Pavilion (max 40 pax) — ₱2,200</option>
+                        <option value="Pavilion 1" data-price="2000">Pavilion 1 — Semi Open (Chairs & Fan) — ₱2,000</option>
+                        <option value="Pavilion Overlooking" data-price="2500">Pavilion Overlooking Pool (Chairs & Fan) — ₱2,500</option>
                         <option value="Old Pavilion" data-price="2000">Old Pavilion (Chairs & Fan) — ₱2,000</option>
                         <option value="New Pavilion" data-price="3500">New Pavilion (Chairs & Fan) — ₱3,500</option>
                     </select>
@@ -327,17 +341,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <label class="form-label">Cottage Type</label>
                     <select name="cottage_type" class="form-select" id="cottageType">
                         <option value="None" data-price="0">No Cottage</option>
-                        <option value="Cottage 400" data-price="400">Cottage 400 (Good for 10) — ₱400</option>
-                        <option value="Cottage 600" data-price="600">Cottage 600 (Good for 15) — ₱600</option>
+                        <option value="Cottage 6" data-price="400" data-elec="100">Cottage 6 (8–12 pax, Day Stay Only) — ₱400 + ₱100 electricity</option>
+                        <option value="Cottage 400" data-price="400" data-elec="0">Cottage 400 (Good for 10) — ₱400</option>
+                        <option value="Cottage 600" data-price="600" data-elec="0">Cottage 600 (Good for 15) — ₱600</option>
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Number of Guests <span class="text-danger">*</span></label>
                     <select name="pax" class="form-select" id="paxType" required>
                         <option value="" disabled selected>Select capacity</option>
-                        <option value="2-6">Up to 6 guests</option>
+                        <option value="1-6">Up to 6 guests</option>
                         <option value="7-10">7 – 10 guests</option>
                         <option value="11-15">11 – 15 guests</option>
+                        <option value="16-40">16 – 40 guests</option>
                     </select>
                 </div>
                 <div class="col-md-6">
@@ -368,7 +384,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                     <input type="hidden" name="total_price" id="totalPriceInput" value="0">
                     <small class="text-muted mt-2 d-block">
-                        Calculation: (Accommodation rate × nights) + flat cottage rate.
+                        Calculation: (Accommodation rate × nights) + flat cottage rate. Cottage 6 includes a ₱100 electricity surcharge.
                         All pavilions include free table, chairs, and 1 fan.
                     </small>
                 </div>
@@ -394,8 +410,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <script>
 function calculateTotal() {
-    const roomPrice    = parseInt(document.getElementById('roomType').selectedOptions[0].dataset.price)    || 0;
-    const cottagePrice = parseInt(document.getElementById('cottageType').selectedOptions[0].dataset.price) || 0;
+    const roomSel    = document.getElementById('roomType');
+    const cottageSel = document.getElementById('cottageType');
+    const roomPrice    = parseInt(roomSel.selectedOptions[0].dataset.price)    || 0;
+    const cottagePrice = parseInt(cottageSel.selectedOptions[0].dataset.price) || 0;
+    const elecSurcharge= parseInt(cottageSel.selectedOptions[0].dataset.elec)  || 0;
     const checkin      = document.getElementById('checkinDate').value;
     const checkout     = document.getElementById('checkoutDate').value;
 
@@ -405,7 +424,7 @@ function calculateTotal() {
         if (diff > 0) nights = diff;
     }
 
-    const total = (roomPrice * nights) + cottagePrice;
+    const total = (roomPrice * nights) + cottagePrice + elecSurcharge;
     document.getElementById('totalAmount').textContent = total.toFixed(2);
     document.getElementById('totalPriceInput').value   = total.toFixed(2);
 }
