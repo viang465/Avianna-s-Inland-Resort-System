@@ -1,7 +1,6 @@
 <?php
 session_start();
-include "../conn.php"; 
-include "hash.php"; // for password hashing reference
+include "../conn.php";
 
 $error = ""; 
 if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
