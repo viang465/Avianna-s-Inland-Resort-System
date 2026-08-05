@@ -196,7 +196,9 @@ if (isset($_GET['approve']) && $_GET['approve'] === 'success') $bannerMsg = "Boo
                     <tr>
                         <td>
                             <span class="guest-name"><?php echo htmlspecialchars($row['name']); ?></span>
-                            <span class="guest-email"><?php echo htmlspecialchars($row['email']); ?></span>
+                        </td>
+                        <td>
+                            <span class="guest-email"><?php echo htmlspecialchars($row['email'] ?? 'N/A'); ?></span>
                         </td>
                         <td>
                             <span class="fw-medium"><?php echo htmlspecialchars($row['room_type']); ?></span>
@@ -210,14 +212,14 @@ if (isset($_GET['approve']) && $_GET['approve'] === 'success') $bannerMsg = "Boo
                             </span>
                         </td>
                         <td>
-                            <div class="d-flex">
+                            <div class="d-flex align-items-center">
                                 <button type="button" class="btn btn-outline-primary btn-sm px-3 me-2 btn-view-details"
                                         data-booking='<?php echo htmlspecialchars(json_encode($row), ENT_QUOTES, "UTF-8"); ?>'>
                                     View
                                 </button>
                                 <a href="edit_booking.php?id=<?php echo $row['id']; ?>" class="btn btn-success btn-sm px-3 me-2">Approve</a>
                                 <a href="manage_booking.php?id=<?php echo $row['id']; ?>" class="btn btn-outline-secondary btn-sm px-3 me-2">Edit</a>
-                                <form action="cancel_booking.php" method="POST" onsubmit="return confirm('Archive this booking?');">
+                                <form action="cancel_booking.php" method="POST" onsubmit="return confirm('Archive this booking?');" style="margin:0;">
                                     <input type="hidden" name="booking_id" value="<?php echo $row['id']; ?>">
                                     <button type="submit" class="btn btn-outline-danger btn-sm px-3">Archive</button>
                                 </form>
@@ -227,7 +229,7 @@ if (isset($_GET['approve']) && $_GET['approve'] === 'success') $bannerMsg = "Boo
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" class="text-center py-5">
+                        <td colspan="6" class="text-center py-5">
                             <img src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png" width="60" class="opacity-25 mb-3" alt="empty">
                             <p class="text-muted mb-0">No pending reservations found.</p>
                         </td>

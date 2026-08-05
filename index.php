@@ -177,22 +177,7 @@ if ($announcementQuery && $announcementQuery->num_rows > 0):
         
         <p class="mb-4">Whether you're seeking a romantic getaway, a family adventure, or a peaceful retreat, Avianna's Inland Resort is your perfect destination. Experience our world-class amenities, warm hospitality, and breathtaking views that will leave you rejuvenated and inspired.</p>
         <p class="mb-4">Book your stay with us today and immerse yourself in the ultimate tropical sanctuary. We can't wait to welcome you to Avianna's Inland Resort, where unforgettable memories are made.</p>
-
-        <div class="row justify-content-center mb-4">
-            <div class="col-md-6 col-lg-4">
-                <div class="p-3 border rounded shadow-sm bg-white">
-                    <h5 class="fw-bold mb -2">🌿 Nature's Embrace</h5>
-                    <p class="mb-0 text-dark"><b>Cottage 400 good for 10</b>
-                    <br>Cottage 600 good for 15
-                    <br>Overnight rooms 2500 good for 6pax free swimming
-                    <br>Pavilion rate 2500 overlooking sa pool
-                    <br>Old pavilion 2000
-                    <br>New pavilion 3500
-                    <br>All pavilion free table and chairs and 1 fan</p>
-                </div>
-            </div>
-        </div>
-
+        
         <div class="row justify-content-center mb-4">
             <div class="col-md-6 col-lg-4">
                 <div class="p-3 border rounded shadow-sm bg-white">
