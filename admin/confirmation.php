@@ -112,6 +112,10 @@ $refCode = $booking ? 'AIR-' . str_pad($booking['id'], 5, '0', STR_PAD_LEFT) : '
                 <span class="detail-value"><?php echo htmlspecialchars($booking['email']); ?></span>
             </div>
             <div class="detail-row">
+                <span class="detail-label">Contact</span>
+                <span class="detail-value"><?php echo htmlspecialchars($booking['contact'] ?? 'N/A'); ?></span>
+            </div>
+            <div class="detail-row">
                 <span class="detail-label">Room Type</span>
                 <span class="detail-value"><?php echo htmlspecialchars($booking['room_type']); ?></span>
             </div>

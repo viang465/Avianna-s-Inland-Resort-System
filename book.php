@@ -3,12 +3,31 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 session_start();
-include('conn.php');
-require __DIR__ . '/mail_config.php';
 
-require __DIR__ . '/PHPMailer.php';
-require __DIR__ . '/Exception.php';
-require __DIR__ . '/SMTP.php';
+// Include database connection gracefully
+if (file_exists(__DIR__ . '/conn.php')) {
+    include(__DIR__ . '/conn.php');
+}
+
+// Safely require mail_config.php without throwing a Fatal Error
+if (file_exists(__DIR__ . '/mail_config.php')) {
+    require_once __DIR__ . '/mail_config.php';
+}
+
+// Safely require PHPMailer files
+if (file_exists(__DIR__ . '/PHPMailer.php')) {
+    require_once __DIR__ . '/PHPMailer.php';
+    require_once __DIR__ . '/Exception.php';
+    require_once __DIR__ . '/SMTP.php';
+}
+
+// Define fallback constants if mail_config.php does not exist yet
+if (!defined('MAIL_HOST'))     define('MAIL_HOST', 'smtp.gmail.com');
+if (!defined('MAIL_USERNAME')) define('MAIL_USERNAME', 'your-email@gmail.com');
+if (!defined('MAIL_PASSWORD')) define('MAIL_PASSWORD', 'your-app-password');
+if (!defined('MAIL_PORT'))     define('MAIL_PORT', 587);
+if (!defined('MAIL_FROM'))     define('MAIL_FROM', 'your-email@gmail.com');
+if (!defined('MAIL_FROM_NAME')) define('MAIL_FROM_NAME', "Avianna's Inland Resort");
 
 $booking_success = false;
 $booking_error   = "";
@@ -63,6 +82,12 @@ function getMailer(): PHPMailer {
 
 // ── Send "Booking Received / Pending" email to guest ──────────────────────
 function sendPendingEmail(array $d): bool {
+    // Check if PHPMailer is loaded before attempting email
+    if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+        error_log("PHPMailer class not found. Skipping email sending.");
+        return false;
+    }
+
     try {
         $mail = getMailer();
         $mail->addAddress($d['email'], $d['name']);
@@ -155,8 +180,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif ($checkin < date('Y-m-d', strtotime('today'))) {
         $booking_error = "Check-in date cannot be in the past.";
     } elseif ($checkout < $checkin) {
-        // Same-day (day-use) bookings are allowed, so checkout only needs
-        // to be on or after checkin, not strictly after it.
         $booking_error = "Check-out date cannot be earlier than check-in date.";
     } elseif ($room === 'Overnight Room' && in_array($pax, ['11-15', '16-40'])) {
         $booking_error = "Overnight Room is limited to a maximum of 6 guests.";
@@ -170,42 +193,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $cottage_price += 100;
         }
 
-        // NOTE: If your SQL still throws an error, see the simple check steps below this code block!
-        $stmt = $conn->prepare("
-            INSERT INTO bookings
-            (name, email, contact, address, room_type, cottage_type, pax, checkin_date, checkout_date, payment_method, total_price, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-        
-        $stmt->bind_param("ssssssssssds",
-            $name, $email, $contact, $address,
-            $room, $cottage, $pax,
-            $checkin, $checkout, $payment,
-            $total_price, $status
-        );
+        if (isset($conn)) {
+            $stmt = $conn->prepare("
+                INSERT INTO bookings
+                (name, email, contact, address, room_type, cottage_type, pax, checkin_date, checkout_date, payment_method, total_price, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            
+            $stmt->bind_param("ssssssssssds",
+                $name, $email, $contact, $address,
+                $room, $cottage, $pax,
+                $checkin, $checkout, $payment,
+                $total_price, $status
+            );
 
-        if ($stmt->execute()) {
-            $booking_success = true;
-            sendPendingEmail([
-                'name'          => $name,
-                'email'         => $email,
-                'contact'       => $contact,
-                'address'       => $address,
-                'room'          => $room,
-                'cottage'       => $cottage,
-                'pax'           => $pax,
-                'checkin'       => $checkin,
-                'checkout'      => $checkout,
-                'payment'       => $payment,
-                'total_price'   => $total_price,
-                'room_price'    => $room_price,
-                'cottage_price' => $cottage_price,
-            ]);
+            if ($stmt->execute()) {
+                $booking_success = true;
+                sendPendingEmail([
+                    'name'          => $name,
+                    'email'         => $email,
+                    'contact'       => $contact,
+                    'address'       => $address,
+                    'room'          => $room,
+                    'cottage'       => $cottage,
+                    'pax'           => $pax,
+                    'checkin'       => $checkin,
+                    'checkout'      => $checkout,
+                    'payment'       => $payment,
+                    'total_price'   => $total_price,
+                    'room_price'    => $room_price,
+                    'cottage_price' => $cottage_price,
+                ]);
+            } else {
+                error_log("DB Error: " . $stmt->error);
+                $booking_error = "There was an error saving your booking. Please try again.";
+            }
+            $stmt->close();
         } else {
-            error_log("DB Error: " . $stmt->error);
-            $booking_error = "There was an error saving your booking. Please try again.";
+            $booking_error = "Database connection unavailable. Please check conn.php.";
         }
-        $stmt->close();
     }
 }
 ?>
@@ -348,7 +374,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Pavillion Type</label>
-                    <select name="room_type" class="form-select" id="roomType">
+                    <select name="room_type" class="form-select" id="pavilionType">
                         <option value="None" data-price="0">No Accommodation</option>
                         <option value="Poolside Pavilion" data-price="2200">Poolside Pavilion (max 40 pax) — ₱2,200</option>
                         <option value="Pavilion 1" data-price="2000">Pavilion 1 — Semi Open (Chairs & Fan) — ₱2,000</option>
@@ -422,21 +448,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 function calculateTotal() {
     const roomSel    = document.getElementById('roomType');
     const cottageSel = document.getElementById('cottageType');
-    const roomPrice    = parseInt(roomSel.selectedOptions[0].dataset.price)    || 0;
-    const cottagePrice = parseInt(cottageSel.selectedOptions[0].dataset.price) || 0;
-    const elecSurcharge= parseInt(cottageSel.selectedOptions[0].dataset.elec)  || 0;
-    const checkin      = document.getElementById('checkinDate').value;
-    const checkout     = document.getElementById('checkoutDate').value;
+    const pavilionSel= document.getElementById('pavilionType');
+    
+    const roomPrice     = roomSel ? (parseInt(roomSel.selectedOptions[0].dataset.price) || 0) : 0;
+    const pavilionPrice = pavilionSel ? (parseInt(pavilionSel.selectedOptions[0].dataset.price) || 0) : 0;
+    const cottagePrice  = cottageSel ? (parseInt(cottageSel.selectedOptions[0].dataset.price) || 0) : 0;
+    const elecSurcharge = cottageSel ? (parseInt(cottageSel.selectedOptions[0].dataset.elec)  || 0) : 0;
+    
+    const checkin  = document.getElementById('checkinDate').value;
+    const checkout = document.getElementById('checkoutDate').value;
 
-    // Same-day (day-use) bookings are billed as 1 night; multi-day stays
-    // are billed for the actual number of nights between the two dates.
     let nights = 1;
     if (checkin && checkout) {
         const diff = (new Date(checkout) - new Date(checkin)) / 86400000;
         if (diff > 0) nights = diff;
     }
 
-    const total = (roomPrice * nights) + cottagePrice + elecSurcharge;
+    const total = ((roomPrice + pavilionPrice) * nights) + cottagePrice + elecSurcharge;
     document.getElementById('totalAmount').textContent = total.toFixed(2);
     document.getElementById('totalPriceInput').value   = total.toFixed(2);
 }
@@ -445,8 +473,6 @@ function handleCheckinChange() {
     const checkinEl  = document.getElementById('checkinDate');
     const checkoutEl = document.getElementById('checkoutDate');
     if (checkinEl.value) {
-        // Checkout can be the same day as checkin (day-use booking),
-        // so the minimum allowed checkout date is checkin itself.
         const minCheckout = checkinEl.value;
         checkoutEl.min = minCheckout;
         if (checkoutEl.value && checkoutEl.value < checkinEl.value) {
@@ -456,7 +482,7 @@ function handleCheckinChange() {
     calculateTotal();
 }
 
-['roomType','cottageType','paxType'].forEach(id => {
+['roomType','cottageType','pavilionType','paxType'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', calculateTotal);
 });

@@ -197,6 +197,9 @@ $result = $conn->query($sql);
                             <span class="text-muted-small"><?php echo htmlspecialchars($row['email']); ?></span>
                         </td>
                         <td>
+                            <span class="text-muted-small"><?php echo htmlspecialchars($row['contact'] ?? 'N/A'); ?></span>
+                        </td>
+                        <td>
                             <span class="fw-medium"><?php echo htmlspecialchars($row['room_type']); ?></span>
                         </td>
                         <td>

@@ -156,7 +156,7 @@ if (isset($_GET['approve']) && $_GET['approve'] === 'success') $bannerMsg = "Boo
         <a class="nav-link" href="approve.php"><span>Approved History</span></a>
         <a class="nav-link" href="admin_history.php"><span>Cancellation History</span></a>
         <a class="nav-link" href="admin_announcements.php"><span>Announcements</span></a>
-        <a class="nav-link" href="admin_analytics.php"><span>Analytics</span></a>
+        <a class="nav-link" href="admin_analytics.php"><span>Dashboard</span></a>
         <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
         <a class="nav-link text-warning" href="../index.php" target="_blank"><span>← View Website</span></a>
         <a class="nav-link text-danger" href="logout.php"><span>Logout</span></a>
@@ -186,6 +186,7 @@ if (isset($_GET['approve']) && $_GET['approve'] === 'success') $bannerMsg = "Boo
                     <th>Contact Information</th>
                     <th>Room Type</th>
                     <th>Check-in</th>
+                    <th>Check-out</th>
                     <th>Payment</th>
                     <th>Actions</th>
                 </tr>
@@ -201,10 +202,16 @@ if (isset($_GET['approve']) && $_GET['approve'] === 'success') $bannerMsg = "Boo
                             <span class="guest-email"><?php echo htmlspecialchars($row['email'] ?? 'N/A'); ?></span>
                         </td>
                         <td>
+                            <span class="guest-email"><?php echo htmlspecialchars($row['contact'] ?? 'N/A'); ?></span>
+                        </td>
+                        <td>
                             <span class="fw-medium"><?php echo htmlspecialchars($row['room_type']); ?></span>
                         </td>
                         <td>
                             <span class="text-muted"><?php echo date('M d, Y', strtotime($row['checkin_date'])); ?></span>
+                        </td>
+                        <td>
+                            <span class="text-muted"><?php echo date('M d, Y', strtotime($row['checkout_date'])); ?></span>
                         </td>
                         <td>
                             <span class="badge-payment">

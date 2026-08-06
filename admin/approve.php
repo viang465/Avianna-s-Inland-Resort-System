@@ -167,7 +167,7 @@ $result = $conn->query($sql);
         <a class="nav-link active" href="approve.php"><span>Approved History</span></a>
         <a class="nav-link" href="admin_history.php"><span>Cancellation History</span></a>
         <a class="nav-link" href="admin_announcements.php"><span>Announcements</span></a>
-        <a class="nav-link" href="admin_analytics.php"><span>Analytics</span></a>
+        <a class="nav-link" href="admin_analytics.php"><span>Dashboard</span></a>
         <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
         <a class="nav-link text-warning" href="../index.php" target="_blank"><span>← View Website</span></a>
         <a class="nav-link text-danger" href="logout.php"><span>Logout</span></a>

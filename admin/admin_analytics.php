@@ -121,7 +121,7 @@ if ($weeklyStats) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics | Avianna's Admin</title>
+    <title>Dashboard | Avianna's Admin</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -281,6 +281,7 @@ if ($weeklyStats) {
                 <tr>
                     <th>Week</th>
                     <th>Bookings</th>
+                    <th>Guests</th>
                     <th>Gross Revenue</th>
                 </tr>
             </thead>
@@ -289,6 +290,7 @@ if ($weeklyStats) {
                 <tr>
                     <td><?= htmlspecialchars($w['week']) ?></td>
                     <td><?= htmlspecialchars($w['bookings']) ?></td>
+                    <td><?= htmlspecialchars($w['guests']) ?? '0' ?></td>
                     <td class="text-success fw-semibold">₱<?= number_format($w['revenue'], 2) ?></td>
                 </tr>
                 <?php endforeach; ?>

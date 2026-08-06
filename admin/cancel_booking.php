@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
 
     // Fetch guest details before archiving
     $guest = null;
-    $lookup = $conn->prepare("SELECT name, email, room_type, checkin_date, checkout_date FROM bookings WHERE id = ?");
+    $lookup = $conn->prepare("SELECT name, email, contact, address, room_type, checkin_date, checkout_date FROM bookings WHERE id = ?");
     $lookup->bind_param("i", $id);
     $lookup->execute();
     $guest = $lookup->get_result()->fetch_assoc();
@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
     $conn->begin_transaction();
 
     try {
-        $copySql = "INSERT INTO deleted_bookings (name, email, address, room_type, checkin_date, checkout_date, deletion_date) 
-                    SELECT name, email, address, room_type, checkin_date, checkout_date, NOW() 
+        $copySql = "INSERT INTO deleted_bookings (name, email, contact, address, room_type, checkin_date, checkout_date, deletion_date) 
+                    SELECT name, email, contact, address, room_type, checkin_date, checkout_date, NOW() 
                     FROM bookings WHERE id = ?";
         
         $stmt = $conn->prepare($copySql);
